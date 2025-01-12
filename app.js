@@ -5,7 +5,7 @@ const authPath = require('./routes/auth');
 const connectionDB = require('./connectionDB');
 const logger = require('./middleware/logger');
 const {notFound,errorHandler} = require('./middleware/error')
-
+// console.log('Environment Variables:', process.env);
 //init
 const app = express();
 // Apply Middlewares
