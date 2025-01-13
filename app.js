@@ -1,11 +1,12 @@
 const express = require('express');
-const booksPath = require('./routes/books');
-const authorsPath = require('./routes/authors');
-const authPath = require('./routes/auth');
-const connectionDB = require('./connectionDB');
 const logger = require('./middleware/logger');
 const {notFound,errorHandler} = require('./middleware/error')
-// console.log('Environment Variables:', process.env);
+require('dotenv').config();
+const { connectToDb } = require('./config/db');
+
+// conecction db
+connectToDb();
+
 //init
 const app = express();
 // Apply Middlewares
@@ -13,9 +14,10 @@ app.use(express.json());
 app.use(logger)
 
 // Routes
-app.use('/api/books',booksPath);
-app.use('/api/authors',authorsPath);
-app.use('/api/auth',authPath);
+app.use('/api/books',require('./routes/books'));
+app.use('/api/authors',require('./routes/authors'));
+app.use('/api/auth',require('./routes/auth'));
+app.use('/api/users',require('./routes/users'));
 // Error Handler Middleware
 app.use(notFound)
 app.use(errorHandler);

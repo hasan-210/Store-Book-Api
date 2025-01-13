@@ -29,11 +29,10 @@ router.post('/register' , asyncHandler(
             email: req.body.email,
             password: hashedPassword,
             username: req.body.username,
-            isAdmin: req.body.isAdmin
         });
 
         const result = await user.save();
-        const token = jwt.sign({id:user._id,isAdmin:user.isAdmin},process.env.JWT_SECRET_KEY);
+        const token = user.generateToken();
         const {password , ...other} = result._doc;
         res.status(201).json({...other,token}); 
     }
@@ -61,7 +60,7 @@ router.post('/login' , asyncHandler(
         if(!isPasswordMatch){
             return res.status(400).json({message:'invalid email or password'})
         }
-        const token = jwt.sign({id:user._id,isAdmin:user.isAdmin},process.env.JWT_SECRET_KEY);
+        const token = user.generateToken();
         // const token = jwt.sign({id:user._id,username:user.username},"secretKey",{
         //     expiresIn:"4d"
         // });

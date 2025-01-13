@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const asyncHandler = require('express-async-handler')
-const {Author,validateCreateAuthor,validateUpdateAuthor} = require('../models/Author')
+const {Author,validateCreateAuthor,validateUpdateAuthor} = require('../models/Author');
+const { verfiyTokenAndAdmin } = require('../middleware/verfiyToken');
 
 
 /**
@@ -42,10 +43,12 @@ router.get('/:id',asyncHandler(
  * @desc Create new Author
  * @route /api/authors
  * @method POST
- * @access public
+ * @access private (only admin)
  */
 
-router.post('/',  asyncHandler(
+router.post('/', 
+    verfiyTokenAndAdmin ,
+    asyncHandler(
     async (req,res)=>{
         const {error} = validateCreateAuthor(req.body);
         if(error){
@@ -66,10 +69,12 @@ router.post('/',  asyncHandler(
  * @desc Update Author
  * @route /api/authors/:id
  * @method PUT
- * @access public
+ * @access private (only admin)
  */
 
-router.put('/:id',asyncHandler(
+router.put('/:id',
+    verfiyTokenAndAdmin ,
+    asyncHandler(
     async (req,res)=>{
         const {error} = validateUpdateAuthor(req.body);
         if(error){
@@ -91,10 +96,12 @@ router.put('/:id',asyncHandler(
  * @desc Delete Author
  * @route /api/authors/:id
  * @method DELETE
- * @access public
+ * @access private (only admin)
  */
 
-router.delete('/:id',asyncHandler(
+router.delete('/:id',
+    verfiyTokenAndAdmin ,
+    asyncHandler(
     async (req,res)=>{
         const author = await Author.findById(req.params.id);
         if(author){
