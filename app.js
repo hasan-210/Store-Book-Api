@@ -2,7 +2,7 @@ const express = require('express');
 const logger = require('./middleware/logger');
 const {notFound,errorHandler} = require('./middleware/error')
 require('dotenv').config();
-const { connectToDb } = require('./config/db');
+const connectToDb  = require('./config/db');
 
 // conecction db
 connectToDb();

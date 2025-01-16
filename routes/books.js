@@ -10,11 +10,39 @@ const { verfiyTokenAndAdmin } = require('../middleware/verfiyToken');
  *  @method GET 
  *  @access public
  */
-
-router.get('/',asyncHandler(
-    async (req,res) => {
-        const books = await Book.find().populate('author');
-        res.status(200).json(books)
+    
+    // Comparioson Query Operator
+    // price : 10 |    price : {$eq:10}  to get data when price = 10
+    // price : {$ne:10}  get all data when price != 10
+    // price : {$lt :10} get data when price less than  10 
+    // price : {$lte:10} get data when price less than and equal to 10
+    // price : {$gt:10}  get data when price greater than 10
+    // price : {$gte:10}  get data when price greater than and equal to 10
+    // price : {$in:[9,10]} get data when price equal to 9 and 10
+    // price : {$nin:[9,10]} get data when price not equal ( 9 and 10 )
+    // const books = await Book.find({
+    //     price : {$in:[9,10]}
+    // })
+router.get('/',asyncHandler(async (req,res) => {
+    const {minPrice , maxPrice} = req.query ;
+    let books ;
+    if(minPrice && maxPrice){
+        books = await Book.find({
+            price : {$gte:minPrice, $lte:maxPrice}
+        })
+        .populate('author',[
+            "_id",
+            "firstName",
+            "lastName"
+        ]);
+    }else {
+        books = await Book.find().populate('author',[
+            "_id",
+            "firstName",
+            "lastName"
+        ]);
+    }
+    res.status(200).json(books)
     }
 ));
 

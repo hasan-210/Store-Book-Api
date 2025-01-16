@@ -10,9 +10,7 @@ async function  connectToDb(){
     }
 }
 
-module.exports = {
-    connectToDb
-}
+module.exports =connectToDb;
     // Connection To Database  - 2 -
     // mongoose.connect(process.env.MONGO_URI)
     // .then(()=>console.log("Connected To MongoDB"))
