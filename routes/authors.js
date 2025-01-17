@@ -15,7 +15,12 @@ const { verfiyTokenAndAdmin } = require('../middleware/verfiyToken');
 router.get('/', asyncHandler(
     async (req,res)=>{
         // const authorList = await Author.find().sort({firstName:-1}).select("firstName lastName -_id");
-        const authorList = await Author.find();
+        // pagination
+        const {pageNumber} = req.query ;
+        const authorPerPage = 2 ;
+        const authorList = await Author.find()
+                                       .skip((pageNumber - 1) * authorPerPage)
+                                       .limit(authorPerPage);
         res.status(200).json(authorList);
     }
 ));
