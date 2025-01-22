@@ -1,0 +1,121 @@
+const asyncHandler = require('express-async-handler');
+const {User} = require('../models/User');
+const jwt  = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+/**
+ *  @desc   Get Forgot Password View
+ *  @route  /password/forgot-password
+ *  @method GET 
+ *  @access public
+ */
+
+module.exports.getForgotPasswordView = asyncHandler((req,res)=> {
+    res.render('forgot-password');
+}) 
+
+
+/**
+ *  @desc   Send Forgot Password link
+ *  @route  /password/forgot-password
+ *  @method Post 
+ *  @access public
+ */
+
+module.exports.sendForgotPasswordLink = asyncHandler(async (req,res)=> {
+    // 1 - get email from user
+    // 2 - check if email exists in database
+    // 3 - if user exists in database , then generate token
+    const user = await User.findOne({email : req.body.email})
+    if(!user){
+        return res.status(404).json({message : 'user not found'});
+    }
+    
+    const secret = process.env.JWT_SECRET_KEY + user.password ;
+    const token =  jwt.sign({email:user.email , id : user._id},secret,{
+        expiresIn : '10m'
+    });
+
+    const link = `${req.protocol}://${req.hostname}:${process.env.PORT}/password/reset-password/${user._id}/${token}` ;
+    //send the link by the Email
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth:{
+            user: process.env.USER_EMAIL ,
+            pass: process.env.USER_PASS
+        }
+    });
+    const mailOptions = {
+        from : process.env.USER_EMAIL,
+        to : user.email,
+        subject: "Reset Password",
+        html : `<div>
+        <h4>Click To The Link Below To Reset Password</h4>
+        <p>${link}</p>
+        </div>`
+    }
+    transporter.sendMail(mailOptions,function(error,success){
+        if(error){
+            console.log(error);
+        }else{
+            console.log("Email sent successfully : "  + success.response);
+            
+        }
+    });
+    res.render('link-sent')
+});
+
+/**
+ *  @desc   Get reset password link
+ *  @route  /password/reset-password/:userId/:token
+ *  @method GET 
+ *  @access public
+ */
+
+module.exports.getResetPAsswordView = asyncHandler(async (req,res)=> {
+    const user = await User.findById(req.params.userId);
+    if(!user){
+        return res.status(404).json({message : 'user not found'});
+    }
+    
+    const secret = process.env.JWT_SECRET_KEY + user.password ;
+    try {
+        // check if the token is vlaid - check if the secret key in token is equal the secret key in verify method
+        jwt.verify(req.params.token,secret);
+        res.render('reset-password',{email:user.email})
+    } catch (error) {
+        console.log(error);
+        res.json({message : "Error" })
+    }
+}) ;
+
+/**
+ *  @desc   Reset Password The Password
+ *  @route  /password/reset-password/:userId/:token
+ *  @method POST 
+ *  @access public
+ */
+
+module.exports.resetThePassword = asyncHandler(async (req,res)=> {
+    // TODO : Validation
+    const user = await User.findById(req.params.userId);
+    if(!user){
+        return res.status(404).json({message : 'user not found'});
+    }
+    
+    const secret = process.env.JWT_SECRET_KEY + user.password ;
+    try {
+        jwt.verify(req.params.token,secret);
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+        user.password = hashedPassword ;
+        await user.save();
+
+        res.render('success-password')
+    } catch (error) {
+        console.log(error);
+        res.json({message : "Error" })
+    }
+}) ;
