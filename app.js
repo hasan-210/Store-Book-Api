@@ -1,9 +1,11 @@
 const express = require('express');
 const logger = require('./middleware/logger');
-const {notFound,errorHandler} = require('./middleware/error')
+const {notFound,errorHandler} = require('./middleware/error');
 require('dotenv').config();
 const connectToDb  = require('./config/db');
-const path = require("path") 
+const path = require("path");
+const helmet = require("helmet");
+const cors = require("cors");
 // conecction db
 connectToDb();
 
@@ -15,9 +17,18 @@ app.use(express.static(path.join(__dirname,"images")));
 
 // Apply Middlewares
 app.use(express.json()); 
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({extended: false}));
 app.use(logger)
 app.set('view engine', 'ejs');
+
+// Helmet
+app.use(helmet());
+
+// Core
+app.use(cors({
+    origin :"http://localhost:3000/"
+
+}));
 
 // Routes
 app.use('/api/books',require('./routes/books'));
